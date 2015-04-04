@@ -30,6 +30,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.mokee.utils.MoKeeUtils;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -48,6 +49,7 @@ import com.android.providers.contacts.util.SelectionBuilder;
 import com.android.providers.contacts.util.UserUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mokee.cloud.CloudNumber;
 
 import java.util.HashMap;
 import java.util.List;
@@ -278,7 +280,7 @@ public class CallLogProvider extends ContentProvider {
     }
 
     @Override
-    public Uri insert(Uri uri, ContentValues values) {
+    public Uri insert(Uri uri, final ContentValues values) {
         waitForAccess(mReadAccessLatch);
         checkForSupportedColumns(sCallsProjectionMap, values);
         // Inserting a voicemail record through call_log requires the voicemail
@@ -299,7 +301,18 @@ public class CallLogProvider extends ContentProvider {
 
         long rowId = getDatabaseModifier(mCallsInserter).insert(copiedValues);
         if (rowId > 0) {
-            return ContentUris.withAppendedId(uri, rowId);
+            final Uri uriWithID = ContentUris.withAppendedId(uri, rowId);
+            if (MoKeeUtils.isSupportLanguage(true)) {
+                CloudNumber.detect(values.getAsString(Calls.NUMBER), new CloudNumber.Callback() {
+                    @Override
+                    public void onResult(final String phoneNumber, final String result, int responseCode, Exception e) {
+                        ContentValues locationValues = new ContentValues(values);
+                        locationValues.put(Calls.GEOCODED_LOCATION, result);
+                        update(uriWithID, locationValues, null, null);
+                    }
+                }, getContext());
+            }
+            return uriWithID;
         }
         return null;
     }

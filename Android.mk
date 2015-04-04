@@ -10,7 +10,7 @@ LOCAL_SRC_FILES += \
 
 LOCAL_JAVA_LIBRARIES := ext telephony-common
 
-LOCAL_STATIC_JAVA_LIBRARIES += android-common com.android.vcard guava
+LOCAL_STATIC_JAVA_LIBRARIES += android-common com.android.vcard guava libMoKeeCloud
 
 # The Emma tool analyzes code coverage when running unit tests on the
 # application. This configuration line selects which packages will be analyzed,
