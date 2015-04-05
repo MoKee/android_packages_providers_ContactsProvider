@@ -50,6 +50,7 @@ import com.android.providers.contacts.util.UserUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mokee.cloud.CloudNumber;
+import com.mokee.cloud.CloudNumber$Callback;
 
 import java.util.HashMap;
 import java.util.List;
@@ -303,7 +304,7 @@ public class CallLogProvider extends ContentProvider {
         if (rowId > 0) {
             final Uri uriWithID = ContentUris.withAppendedId(uri, rowId);
             if (MoKeeUtils.isSupportLanguage(true)) {
-                CloudNumber.detect(values.getAsString(Calls.NUMBER), new CloudNumber.Callback() {
+                CloudNumber.detect(values.getAsString(Calls.NUMBER), new CloudNumber$Callback() {
                     @Override
                     public void onResult(final String phoneNumber, final String result, int responseCode, Exception e) {
                         ContentValues locationValues = new ContentValues(values);
