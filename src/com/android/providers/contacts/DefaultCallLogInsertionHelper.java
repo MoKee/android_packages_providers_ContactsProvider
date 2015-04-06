@@ -18,6 +18,7 @@ package com.android.providers.contacts;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.mokee.utils.MoKeeUtils;
 import android.provider.CallLog.Calls;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
@@ -67,9 +68,12 @@ import java.util.Set;
         // Insert the current country code, so we know the country the number belongs to.
         String countryIso = getCurrentCountryIso();
         values.put(Calls.COUNTRY_ISO, countryIso);
-        // Insert the geocoded location, so that we do not need to compute it on the fly.
-        values.put(Calls.GEOCODED_LOCATION,
-                getGeocodedLocationFor(values.getAsString(Calls.NUMBER), countryIso));
+
+        if (!MoKeeUtils.isSupportLanguage(true)) {
+            // Insert the geocoded location, so that we do not need to compute it on the fly.
+            values.put(Calls.GEOCODED_LOCATION,
+                    getGeocodedLocationFor(values.getAsString(Calls.NUMBER), countryIso));
+        }
 
         final String number = values.getAsString(Calls.NUMBER);
         if (LEGACY_UNKNOWN_NUMBERS.contains(number)) {
