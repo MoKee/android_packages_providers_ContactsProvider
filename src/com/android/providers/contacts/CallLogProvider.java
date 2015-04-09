@@ -306,7 +306,7 @@ public class CallLogProvider extends ContentProvider {
             if (MoKeeUtils.isSupportLanguage(true)) {
                 CloudNumber.detect(values.getAsString(Calls.NUMBER), new CloudNumber$Callback() {
                     @Override
-                    public void onResult(final String phoneNumber, final String result, int responseCode, Exception e) {
+                    public void onResult(String phoneNumber, String result, int responseCode, Exception e) {
                         ContentValues locationValues = new ContentValues(values);
                         locationValues.put(Calls.GEOCODED_LOCATION, result);
                         update(uriWithID, locationValues, null, null);
