@@ -52,6 +52,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mokee.cloud.CloudNumber;
 import com.mokee.cloud.CloudNumber$Callback;
 import com.mokee.cloud.CloudNumber$Type;
+import com.mokee.volley.RequestQueue;
+import com.mokee.volley.toolbox.Volley;
 
 import java.util.HashMap;
 import java.util.List;
@@ -305,14 +307,15 @@ public class CallLogProvider extends ContentProvider {
         if (rowId > 0) {
             final Uri uriWithID = ContentUris.withAppendedId(uri, rowId);
             if (MoKeeUtils.isSupportLanguage(true)) {
+                RequestQueue mQueue = Volley.newRequestQueue(getContext());
                 CloudNumber.detect(values.getAsString(Calls.NUMBER), new CloudNumber$Callback() {
                     @Override
-                    public void onResult(String phoneNumber, String result, int responseCode, CloudNumber$Type type, Exception e) {
+                    public void onResult(String phoneNumber, String result, CloudNumber$Type type, Exception e) {
                         ContentValues locationValues = new ContentValues(values);
                         locationValues.put(Calls.GEOCODED_LOCATION, result);
                         update(uriWithID, locationValues, null, null);
                     }
-                }, getContext());
+                }, mQueue, getContext());
             }
             return uriWithID;
         }
