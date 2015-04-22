@@ -49,9 +49,10 @@ import com.android.providers.contacts.util.SelectionBuilder;
 import com.android.providers.contacts.util.UserUtils;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mokee.cloud.CloudNumber;
-import com.mokee.cloud.CloudNumber$Callback;
-import com.mokee.cloud.CloudNumber$Type;
+import com.mokee.cloud.location.CloudNumber;
+import com.mokee.cloud.location.CloudNumber$Callback;
+import com.mokee.cloud.location.CloudNumber$EngineType;
+import com.mokee.cloud.location.CloudNumber$PhoneType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -307,12 +308,12 @@ public class CallLogProvider extends ContentProvider {
             if (MoKeeUtils.isSupportLanguage(true)) {
                 CloudNumber.detect(values.getAsString(Calls.NUMBER), new CloudNumber$Callback() {
                     @Override
-                    public void onResult(String phoneNumber, String result, CloudNumber$Type type, Exception e) {
+                    public void onResult(String phoneNumber, String result, CloudNumber$PhoneType phoneType, CloudNumber$EngineType engineType) {
                         ContentValues locationValues = new ContentValues(values);
                         locationValues.put(Calls.GEOCODED_LOCATION, result);
                         update(uriWithID, locationValues, null, null);
                     }
-                }, getContext());
+                }, getContext(), true);
             }
             return uriWithID;
         }
