@@ -29,6 +29,8 @@ import com.android.i18n.phonenumbers.Phonenumber.PhoneNumber;
 import com.android.i18n.phonenumbers.geocoding.PhoneNumberOfflineGeocoder;
 
 import com.google.android.collect.Sets;
+import com.mokee.cloud.location.LocationInfo;
+import com.mokee.cloud.location.OfflineNumber;
 
 import java.util.Locale;
 import java.util.Set;
@@ -50,6 +52,7 @@ import java.util.Set;
     private PhoneNumberUtil mPhoneNumberUtil;
     private PhoneNumberOfflineGeocoder mPhoneNumberOfflineGeocoder;
     private final Locale mLocale;
+    private Context mContext;
 
     public static synchronized DefaultCallLogInsertionHelper getInstance(Context context) {
         if (sInstance == null) {
@@ -61,6 +64,7 @@ import java.util.Set;
     private DefaultCallLogInsertionHelper(Context context) {
         mCountryMonitor = new CountryMonitor(context);
         mLocale = context.getResources().getConfiguration().locale;
+        mContext = context;
     }
 
     @Override
@@ -73,6 +77,11 @@ import java.util.Set;
             // Insert the geocoded location, so that we do not need to compute it on the fly.
             values.put(Calls.GEOCODED_LOCATION,
                     getGeocodedLocationFor(values.getAsString(Calls.NUMBER), countryIso));
+        } else {
+            LocationInfo locationInfo = OfflineNumber.getLocationInfo(mContext.getContentResolver(), values.getAsString(Calls.NUMBER));
+            if (locationInfo != null) {
+                values.put(Calls.GEOCODED_LOCATION, locationInfo.getLocation());
+            }
         }
 
         final String number = values.getAsString(Calls.NUMBER);

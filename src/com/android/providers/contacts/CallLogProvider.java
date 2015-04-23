@@ -53,6 +53,8 @@ import com.mokee.cloud.location.CloudNumber;
 import com.mokee.cloud.location.CloudNumber$Callback;
 import com.mokee.cloud.location.CloudNumber$EngineType;
 import com.mokee.cloud.location.CloudNumber$PhoneType;
+import com.mokee.cloud.location.LocationInfo;
+import com.mokee.cloud.location.OfflineNumber;
 
 import java.util.HashMap;
 import java.util.List;
@@ -283,7 +285,7 @@ public class CallLogProvider extends ContentProvider {
     }
 
     @Override
-    public Uri insert(Uri uri, final ContentValues values) {
+    public Uri insert(Uri uri, ContentValues values) {
         waitForAccess(mReadAccessLatch);
         checkForSupportedColumns(sCallsProjectionMap, values);
         // Inserting a voicemail record through call_log requires the voicemail
@@ -304,20 +306,32 @@ public class CallLogProvider extends ContentProvider {
 
         long rowId = getDatabaseModifier(mCallsInserter).insert(copiedValues);
         if (rowId > 0) {
-            final Uri uriWithID = ContentUris.withAppendedId(uri, rowId);
+            Uri uriWithID = ContentUris.withAppendedId(uri, rowId);
             if (MoKeeUtils.isSupportLanguage(true)) {
-                CloudNumber.detect(values.getAsString(Calls.NUMBER), new CloudNumber$Callback() {
-                    @Override
-                    public void onResult(String phoneNumber, String result, CloudNumber$PhoneType phoneType, CloudNumber$EngineType engineType) {
-                        ContentValues locationValues = new ContentValues(values);
-                        locationValues.put(Calls.GEOCODED_LOCATION, result);
-                        update(uriWithID, locationValues, null, null);
+                ContentValues locationValues = new ContentValues(values);
+                LocationInfo locationInfo = OfflineNumber.getLocationInfo(getContext().getContentResolver(), values.getAsString(Calls.NUMBER));
+                if (locationInfo != null) {
+                    // Update location info when use offline engine or after 3 days.
+                    if (locationInfo.getEngineType() == 1 || locationInfo.getUpdateTime() + 1000 * 60 * 60 * 24 * 3 < System.currentTimeMillis()) {
+                        checkLocationInfoFromCloud(locationValues, values.getAsString(Calls.NUMBER), uriWithID);
                     }
-                }, getContext(), true);
+                } else {
+                    checkLocationInfoFromCloud(locationValues, values.getAsString(Calls.NUMBER), uriWithID);
+                }
             }
             return uriWithID;
         }
         return null;
+    }
+
+    private void checkLocationInfoFromCloud (final ContentValues values, String number, final Uri uriWithID) {
+        CloudNumber.detect(number, new CloudNumber$Callback() {
+            @Override
+            public void onResult(String phoneNumber, String result, CloudNumber$PhoneType phoneType, CloudNumber$EngineType engineType) {
+                values.put(Calls.GEOCODED_LOCATION, result);
+                update(uriWithID, values, null, null);
+            }
+        }, getContext(), true);
     }
 
     @Override
