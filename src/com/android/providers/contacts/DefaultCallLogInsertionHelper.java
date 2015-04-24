@@ -73,18 +73,19 @@ import java.util.Set;
         String countryIso = getCurrentCountryIso();
         values.put(Calls.COUNTRY_ISO, countryIso);
 
-        if (!MoKeeUtils.isSupportLanguage(true)) {
-            // Insert the geocoded location, so that we do not need to compute it on the fly.
-            values.put(Calls.GEOCODED_LOCATION,
-                    getGeocodedLocationFor(values.getAsString(Calls.NUMBER), countryIso));
-        } else {
-            LocationInfo locationInfo = OfflineNumber.getLocationInfo(mContext.getContentResolver(), values.getAsString(Calls.NUMBER));
+        final String number = values.getAsString(Calls.NUMBER);
+
+        if (MoKeeUtils.isSupportLanguage(true) && !TextUtils.isEmpty(number)) {
+            LocationInfo locationInfo = OfflineNumber.getLocationInfo(mContext.getContentResolver(), number);
             if (locationInfo != null) {
                 values.put(Calls.GEOCODED_LOCATION, locationInfo.getLocation());
             }
+        } else {
+            // Insert the geocoded location, so that we do not need to compute it on the fly.
+            values.put(Calls.GEOCODED_LOCATION,
+                    getGeocodedLocationFor(number, countryIso));
         }
 
-        final String number = values.getAsString(Calls.NUMBER);
         if (LEGACY_UNKNOWN_NUMBERS.contains(number)) {
             values.put(Calls.NUMBER_PRESENTATION, Calls.PRESENTATION_UNKNOWN);
             values.put(Calls.NUMBER, "");

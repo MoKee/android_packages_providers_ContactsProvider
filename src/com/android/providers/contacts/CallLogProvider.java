@@ -307,7 +307,7 @@ public class CallLogProvider extends ContentProvider {
         long rowId = getDatabaseModifier(mCallsInserter).insert(copiedValues);
         if (rowId > 0) {
             Uri uriWithID = ContentUris.withAppendedId(uri, rowId);
-            if (MoKeeUtils.isSupportLanguage(true)) {
+            if (MoKeeUtils.isSupportLanguage(true) && !TextUtils.isEmpty(values.getAsString(Calls.NUMBER))) {
                 ContentValues locationValues = new ContentValues(values);
                 LocationInfo locationInfo = OfflineNumber.getLocationInfo(getContext().getContentResolver(), values.getAsString(Calls.NUMBER));
                 if (locationInfo != null) {
