@@ -310,8 +310,9 @@ public class CallLogProvider extends ContentProvider {
             if (MoKeeUtils.isSupportLanguage(true) && !TextUtils.isEmpty(values.getAsString(Calls.NUMBER))) {
                 ContentValues locationValues = new ContentValues(values);
                 LocationInfo locationInfo = OfflineNumber.getLocationInfo(getContext().getContentResolver(), values.getAsString(Calls.NUMBER));
-                // Update location info when location info is null or use offline engine or update 3 days ago. 
-                if (locationInfo == null || locationInfo.getEngineType() == 1 || locationInfo.getUpdateTime() + 1000 * 60 * 60 * 24 * 3 < System.currentTimeMillis()) {
+                // Update location info when location info is null or use offline engine and usermark is empty and update 3 days ago or update 3 days ago and use online engine. 
+                if (locationInfo == null || locationInfo.getEngineType() == 1 && TextUtils.isEmpty(locationInfo.getUserMark()) && locationInfo.getUpdateTime() + 86400000 * 3 < System.currentTimeMillis() 
+                    || locationInfo.getEngineType() == 0 && locationInfo.getUpdateTime() + 86400000 * 3 < System.currentTimeMillis()) {
                     checkLocationInfoFromCloud(locationValues, values.getAsString(Calls.NUMBER), uriWithID, locationInfo);
                 }
             }

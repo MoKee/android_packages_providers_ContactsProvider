@@ -18,7 +18,6 @@ package com.android.providers.contacts;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.mokee.utils.MoKeeUtils;
 import android.provider.CallLog.Calls;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
@@ -75,15 +74,10 @@ import java.util.Set;
 
         final String number = values.getAsString(Calls.NUMBER);
 
-        if (MoKeeUtils.isSupportLanguage(true) && !TextUtils.isEmpty(number)) {
-            LocationInfo locationInfo = OfflineNumber.getLocationInfo(mContext.getContentResolver(), number);
-            if (locationInfo != null) {
-                values.put(Calls.GEOCODED_LOCATION, locationInfo.getLocation());
-            }
-        } else {
-            // Insert the geocoded location, so that we do not need to compute it on the fly.
-            values.put(Calls.GEOCODED_LOCATION,
-                    getGeocodedLocationFor(number, countryIso));
+        // Insert the geocoded location, so that we do not need to compute it on the fly.
+        LocationInfo locationInfo = OfflineNumber.getLocationInfo(mContext.getContentResolver(), number);
+        if (locationInfo != null) {
+            values.put(Calls.GEOCODED_LOCATION, locationInfo.getLocation());
         }
 
         if (LEGACY_UNKNOWN_NUMBERS.contains(number)) {
