@@ -29,7 +29,7 @@ import com.android.i18n.phonenumbers.geocoding.PhoneNumberOfflineGeocoder;
 
 import com.google.android.collect.Sets;
 import com.mokee.cloud.location.LocationInfo;
-import com.mokee.cloud.location.OfflineNumber;
+import com.mokee.cloud.location.LocationUtils;
 
 import java.util.Locale;
 import java.util.Set;
@@ -75,7 +75,7 @@ import java.util.Set;
         final String number = values.getAsString(Calls.NUMBER);
 
         // Insert the geocoded location, so that we do not need to compute it on the fly.
-        LocationInfo locationInfo = OfflineNumber.getLocationInfo(mContext.getContentResolver(), number);
+        LocationInfo locationInfo = LocationUtils.getLocationInfo(mContext.getContentResolver(), number);
         if (locationInfo != null) {
             values.put(Calls.GEOCODED_LOCATION, locationInfo.getLocation());
         }
