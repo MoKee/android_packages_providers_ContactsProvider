@@ -54,7 +54,7 @@ import com.mokee.cloud.location.CloudNumber$Callback;
 import com.mokee.cloud.location.CloudNumber$EngineType;
 import com.mokee.cloud.location.CloudNumber$PhoneType;
 import com.mokee.cloud.location.LocationInfo;
-import com.mokee.cloud.location.OfflineNumber;
+import com.mokee.cloud.location.LocationUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -309,7 +309,7 @@ public class CallLogProvider extends ContentProvider {
             Uri uriWithID = ContentUris.withAppendedId(uri, rowId);
             if (MoKeeUtils.isSupportLanguage(true) && !TextUtils.isEmpty(values.getAsString(Calls.NUMBER))) {
                 ContentValues locationValues = new ContentValues(values);
-                LocationInfo locationInfo = OfflineNumber.getLocationInfo(getContext().getContentResolver(), values.getAsString(Calls.NUMBER));
+                LocationInfo locationInfo = LocationUtils.getLocationInfo(getContext().getContentResolver(), values.getAsString(Calls.NUMBER));
                 // Update location info when location info is null or use offline engine and usermark is empty and update 3 days ago or update 3 days ago and use online engine. 
                 if (locationInfo == null || locationInfo.getEngineType() == 1 && TextUtils.isEmpty(locationInfo.getUserMark()) && locationInfo.getUpdateTime() + 86400000 * 3 < System.currentTimeMillis() 
                     || locationInfo.getEngineType() == 0 && locationInfo.getUpdateTime() + 86400000 * 3 < System.currentTimeMillis()) {
@@ -325,7 +325,7 @@ public class CallLogProvider extends ContentProvider {
         CloudNumber.detect(number, new CloudNumber$Callback() {
             @Override
             public void onResult(String phoneNumber, String result, CloudNumber$PhoneType phoneType, CloudNumber$EngineType engineType) {
-                if (locationInfo != null && OfflineNumber.getEngineTypeID(engineType) > locationInfo.getEngineType()) {
+                if (locationInfo != null && LocationUtils.getEngineTypeID(engineType) > locationInfo.getEngineType()) {
                     values.put(Calls.GEOCODED_LOCATION, locationInfo.getLocation());
                 } else {
                     values.put(Calls.GEOCODED_LOCATION, result);
