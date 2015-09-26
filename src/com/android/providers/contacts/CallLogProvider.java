@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2009 The Android Open Source Project
+ * Copyright (C) 2015 The MoKee OpenSource Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -309,9 +310,10 @@ public class CallLogProvider extends ContentProvider {
             Uri uriWithID = ContentUris.withAppendedId(uri, rowId);
             if (MoKeeUtils.isSupportLanguage(true) && !TextUtils.isEmpty(values.getAsString(Calls.NUMBER))) {
                 ContentValues locationValues = new ContentValues(values);
+                LocationInfo locationInfo = LocationUtils.getLocationInfo(getContext().getContentResolver(), values.getAsString(Calls.NUMBER));
                 // Update location info when location info is null or use offline engine and usermark is empty and update 3 days ago or update 3 days ago and use online engine. 
-                if (LocationUtils.shouldUpdateLocationInfo(getContext(), values.getAsString(Calls.NUMBER))) {
-                    checkLocationInfoFromCloud(locationValues, values.getAsString(Calls.NUMBER), uriWithID);
+                if (LocationUtils.shouldUpdateLocationInfo(locationInfo)) {
+                    checkLocationInfoFromCloud(locationInfo, locationValues, values.getAsString(Calls.NUMBER), uriWithID);
                 }
             }
             return uriWithID;
@@ -319,11 +321,10 @@ public class CallLogProvider extends ContentProvider {
         return null;
     }
 
-    private void checkLocationInfoFromCloud (final ContentValues values, String number, final Uri uriWithID) {
+    private void checkLocationInfoFromCloud (final LocationInfo locationInfo, final ContentValues values, String number, final Uri uriWithID) {
         CloudNumber.detect(number, new CloudNumber$Callback() {
             @Override
             public void onResult(String phoneNumber, String result, CloudNumber$PhoneType phoneType, CloudNumber$EngineType engineType) {
-                LocationInfo locationInfo = LocationUtils.getLocationInfo(getContext().getContentResolver(), values.getAsString(Calls.NUMBER));
                 if (locationInfo != null && LocationUtils.getEngineTypeID(engineType) > locationInfo.getEngineType()) {
                     values.put(Calls.GEOCODED_LOCATION, locationInfo.getLocation());
                 } else {
