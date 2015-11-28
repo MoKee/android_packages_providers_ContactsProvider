@@ -51,9 +51,6 @@ import com.android.providers.contacts.util.UserUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mokee.cloud.location.CloudNumber;
-import com.mokee.cloud.location.CloudNumber$Callback;
-import com.mokee.cloud.location.CloudNumber$EngineType;
-import com.mokee.cloud.location.CloudNumber$PhoneType;
 import com.mokee.cloud.location.LocationInfo;
 import com.mokee.cloud.location.LocationUtils;
 
@@ -322,9 +319,9 @@ public class CallLogProvider extends ContentProvider {
     }
 
     private void checkLocationInfoFromCloud (final LocationInfo locationInfo, final ContentValues values, String number, final Uri uriWithID) {
-        CloudNumber.detect(number, new CloudNumber$Callback() {
+        CloudNumber.detect(number, new CloudNumber.Callback() {
             @Override
-            public void onResult(String phoneNumber, String result, CloudNumber$PhoneType phoneType, CloudNumber$EngineType engineType) {
+            public void onResult(String phoneNumber, String result, CloudNumber.PhoneType phoneType, CloudNumber.EngineType engineType) {
                 if (locationInfo != null && LocationUtils.getEngineTypeID(engineType) > locationInfo.getEngineType()) {
                     values.put(Calls.GEOCODED_LOCATION, locationInfo.getLocation());
                 } else {
