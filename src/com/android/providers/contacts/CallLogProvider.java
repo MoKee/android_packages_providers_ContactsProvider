@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2009 The Android Open Source Project
+ * Copyright (C) 2015-2016 The MoKee Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +31,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.mokee.utils.MoKeeUtils;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -51,6 +53,9 @@ import com.android.providers.contacts.util.SelectionBuilder;
 import com.android.providers.contacts.util.UserUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mokee.cloud.location.CloudNumber;
+import com.mokee.cloud.location.LocationInfo;
+import com.mokee.cloud.location.LocationUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -317,9 +322,32 @@ public class CallLogProvider extends ContentProvider {
 
         long rowId = getDatabaseModifier(mCallsInserter).insert(copiedValues);
         if (rowId > 0) {
-            return ContentUris.withAppendedId(uri, rowId);
+            Uri uriWithID = ContentUris.withAppendedId(uri, rowId);
+            if (MoKeeUtils.isSupportLanguage(true) && !TextUtils.isEmpty(values.getAsString(Calls.NUMBER))) {
+                ContentValues locationValues = new ContentValues(values);
+                LocationInfo locationInfo = LocationUtils.getLocationInfo(getContext().getContentResolver(), values.getAsString(Calls.NUMBER));
+                // Update location info when location info is null or use offline engine and usermark is empty and update 3 days ago or update 3 days ago and use online engine. 
+                if (LocationUtils.shouldUpdateLocationInfo(locationInfo)) {
+                    checkLocationInfoFromCloud(locationInfo, locationValues, values.getAsString(Calls.NUMBER), uriWithID);
+                }
+            }
+            return uriWithID;
         }
         return null;
+    }
+
+    private void checkLocationInfoFromCloud (final LocationInfo locationInfo, final ContentValues values, String number, final Uri uriWithID) {
+        CloudNumber.detect(number, new CloudNumber.Callback() {
+            @Override
+            public void onResult(String phoneNumber, String result, CloudNumber.PhoneType phoneType, CloudNumber.EngineType engineType) {
+                if (locationInfo != null && LocationUtils.getEngineTypeID(engineType) > locationInfo.getEngineType()) {
+                    values.put(Calls.GEOCODED_LOCATION, locationInfo.getLocation());
+                } else {
+                    values.put(Calls.GEOCODED_LOCATION, result);
+                }
+                update(uriWithID, values, null, null);
+            }
+        }, getContext(), true);
     }
 
     @Override
