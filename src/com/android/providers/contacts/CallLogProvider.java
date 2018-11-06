@@ -395,7 +395,7 @@ public class CallLogProvider extends ContentProvider {
             if (MoKeeUtils.isSupportLanguage(true) && !TextUtils.isEmpty(values.getAsString(Calls.NUMBER))) {
                 ContentValues locationValues = new ContentValues(values);
                 LocationInfo locationInfo = LocationUtils.getLocationInfo(getContext().getContentResolver(), values.getAsString(Calls.NUMBER));
-                // Update location info when location info is null or use offline engine and usermark is empty and update 3 days ago or update 3 days ago and use online engine.
+                // Update when location info is empty or use offline engine and usermark is empty and update 3 days ago or update 3 days ago and use online engine.
                 if (LocationUtils.shouldUpdateLocationInfo(locationInfo)) {
                     checkLocationInfoFromCloud(locationInfo, locationValues, values.getAsString(Calls.NUMBER), uriWithID);
                 }
