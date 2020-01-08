@@ -206,7 +206,7 @@ public class CallLogDatabaseHelper {
                 upgradeToVersion4(db);
             }
 
-            // In Lineage 14.1, we changed the version to 5 so the AOSP version 5 upgrade was skipped
+            // In MK71.2, we changed the version to 5 so the AOSP version 5 upgrade was skipped
             if (oldVersion < 6) {
                 try {
                     upgradeToVersion5(db);
